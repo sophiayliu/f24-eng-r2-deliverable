@@ -16,16 +16,13 @@ import { useForm } from "react-hook-form";
 
 type Species = Database["public"]["Tables"]["species"]["Row"];
 
+// provide additional info for a given species card
 export default function LearnMoreDialog({ species }: { species: Species }) {
   // Control open/closed state of the dialog
   const [open, setOpen] = useState<boolean>(false);
 
   // Instantiate form functionality with React Hook Form, passing in the Zod schema (for validation) and default values
-  const form = useForm<FormData>({
-    // resolver: zodResolver(speciesSchema),
-    // defaultValues,
-    //  mode: "onChange",
-  });
+  const form = useForm<FormData>({});
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

@@ -22,14 +22,12 @@ import { redirect, useRouter } from "next/navigation";
 import { useState, type BaseSyntheticEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import DeleteDialog from "./delete-dialog";
 
-// We use zod (z) to define a schema for the "Edit species" form.
-// zod handles validation of the input values with methods like .string(), .nullable(). It also processes the form inputs with .transform() before the inputs are sent to the database.
 
-// Define kingdom enum for use in Zod schema and displaying dropdown options in the form
+// same use of zod and same speciesSchema as in add-species
 const kingdoms = z.enum(["Animalia", "Plantae", "Fungi", "Protista", "Archaea", "Bacteria"]);
 
-// Use Zod to define the shape + requirements of a Species entry; used in form validation
 const speciesSchema = z.object({
   scientific_name: z
     .string()
@@ -57,14 +55,6 @@ const speciesSchema = z.object({
 });
 
 type FormData = z.infer<typeof speciesSchema>;
-
-// Default values for the form fields.
-/* Because the react-hook-form (RHF) used here is a controlled form (not an uncontrolled form),
-fields that are nullable/not required should explicitly be set to `null` by default.
-Otherwise, they will be `undefined` by default, which will raise warnings because `undefined` conflicts with controlled components.
-All form fields should be set to non-undefined default values.
-Read more here: https://legacy.react-hook-form.com/api/useform/
-*/
 
 type Species = Database["public"]["Tables"]["species"]["Row"];
 
@@ -110,6 +100,7 @@ export default function EditSpeciesDialog(props: { species: Species; userId: str
     // Obtain the ID of the currently signed-in user
     const sessionId = session.user.id;
 
+    // update database entry with updated info
     const { error } = await supabase
       .from("species")
       .update({
@@ -149,6 +140,8 @@ export default function EditSpeciesDialog(props: { species: Species; userId: str
       description: "Successfully edited " + input.scientific_name + ".",
     });
   };
+
+  // only show this edit functionality if the user is the author of a species card
 
   if (userId == species.author) {
     return (
@@ -287,6 +280,9 @@ export default function EditSpeciesDialog(props: { species: Species; userId: str
                     );
                   }}
                 />
+                <DialogClose asChild>
+                  <DeleteDialog species={species} />
+                </DialogClose>
                 <div className="flex">
                   <Button type="submit" className="ml-1 mr-1 flex-auto">
                     Edit Species
@@ -305,8 +301,3 @@ export default function EditSpeciesDialog(props: { species: Species; userId: str
     );
   }
 }
-/*
-<Button variant="default" className="ml-1 mr-1 flex-auto" onClick={onDelete}>
-                    Delete Species
-                  </Button>
-                  */

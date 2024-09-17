@@ -2,63 +2,53 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
 import { toast } from "@/components/ui/use-toast";
 import { createBrowserSupabaseClient } from "@/lib/client-utils";
 import type { Database } from "@/lib/schema";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 type Species = Database["public"]["Tables"]["species"]["Row"];
+
+// allow users to delete species that they added (button only appears on species card for species the user created)
 
 export default function DeleteDialog({ species }: { species: Species }) {
   // Control open/closed state of the dialog
   const [open, setOpen] = useState<boolean>(false);
   console.log(species);
   // Instantiate form functionality with React Hook Form, passing in the Zod schema (for validation) and default values
-  const form = useForm<FormData>({
-    // resolver: zodResolver(speciesSchema),
-    // defaultValues,
-    //  mode: "onChange",
-  });
+  console.log("hooray");
 
-  const handleClick = () => {
-    // Code to execute when the button is clicked
-    console.log("Button clicked!");
-  };
+  const router = useRouter();
 
   const deleteClick = async () => {
-    // Code to execute when the button is clicked
+    console.log("DONE");
     const supabase = createBrowserSupabaseClient();
-
-    const { error } = await supabase.from("species").delete().eq("id", species.id);
+    const { error } = await supabase.from("species").delete().eq("id", species.id); // delete species
 
     if (error) {
+      console.log("oh no");
       return toast({
         title: "Something went wrong.",
         description: error.message,
         variant: "destructive",
       });
     }
+    setOpen(false);
+    router.refresh();
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" className="ml-1 mr-1 flex-auto" onClick={handleClick}>
+        <Button variant="default" className="ml-1 mr-1 flex-auto">
           Delete
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-[600px]">
-        <DialogHeader>
-          <button onClick={handleClick}>Confirm Delete</button>
-        </DialogHeader>
-        <Form {...form}>Are you sure you want to delete</Form>
+        <DialogHeader>Confirm Delete</DialogHeader>
         <DialogClose asChild>
-          <Button variant="default" className="ml-1 mr-1 flex-auto" onClick={void deleteClick}>
+          <Button variant="default" className="ml-1 mr-1 flex-auto" onClick={() => void deleteClick()}>
             Confirm
-          </Button>
-          <Button type="button" className="ml-1 mr-1 flex-auto" variant="secondary">
-            Cancel
           </Button>
         </DialogClose>
       </DialogContent>
